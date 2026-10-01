@@ -1,0 +1,38 @@
+name: Publish static website to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'  # <-- добавили автообновление каждые 15 минут
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get repository files
+        uses: actions/checkout@v4
+      - name: Fetch data from HTTP API
+        run: curl -o web/data.json http://your-http-api.com/data   # <-- замени на свой URL
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload static website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - name: Publish website
+        id: deployment
+        uses: actions/deploy-pages@v4
